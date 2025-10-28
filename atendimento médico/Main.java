@@ -6,12 +6,11 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Scanner;
 
-
 public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-      
+
         Clinica clinica = new Clinica();
         boolean executando = true;
 
@@ -56,7 +55,6 @@ public class Main {
         scanner.close();
     }
 
-  
     private static void exibirMenu() {
         System.out.println("\n--- Menu Principal ---");
         System.out.println("1. Adicionar novo paciente (Triagem)");
@@ -74,20 +72,18 @@ public class Main {
         try {
             opcao = Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
-           
+            // Deixa a opção como -1, o switch/case tratará como 'default'
         }
         return opcao;
     }
 }
 
-
-
-
 enum Prioridade {
     VERMELHO(1, "Emergência (atendimento imediato)"),
     AMARELO(2, "Urgente (atendimento em até 20 min)"),
     VERDE(3, "Pouco urgente (atendimento em até 120 min)"),
-    AZUL(4, "Não urgente (atendimento em até 3 horas)"); 
+    AZUL(4, "Não urgente (atendimento em até 3 horas)");
+
     private final int nivel;
     private final String descricao;
 
@@ -110,16 +106,14 @@ enum Prioridade {
     }
 }
 
-
 class Paciente implements Comparable<Paciente> {
-    
+
     private String nome;
     private String cpf;
     private Prioridade prioridade;
     private LocalDateTime horaChegada;
     private LocalDateTime horaAtendimento;
     private Medico medicoAtendeu;
-
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -130,31 +124,37 @@ class Paciente implements Comparable<Paciente> {
         this.horaChegada = LocalDateTime.now();
     }
 
-
+    // --- Getters ---
     public String getNome() { return nome; }
     public Prioridade getPrioridade() { return prioridade; }
     public LocalDateTime getHoraChegada() { return horaChegada; }
     public Medico getMedicoAtendeu() { return medicoAtendeu; }
-    
- 
+    public LocalDateTime getHoraAtendimento() { return horaAtendimento; }
+
+    // --- Setters ---
     public void setHoraAtendimento(LocalDateTime horaAtendimento) {
         this.horaAtendimento = horaAtendimento;
     }
+
     public void setMedicoAtendeu(Medico medicoAtendeu) {
         this.medicoAtendeu = medicoAtendeu;
     }
+    
+    // Método adicionado para corrigir a carga inicial
+    public void setHoraChegada(LocalDateTime horaChegada) {
+        this.horaChegada = horaChegada;
+    }
 
-   
     @Override
     public int compareTo(Paciente outro) {
-  
+        // Compara por nível de prioridade (1-Vermelho é menor/mais prioritário)
         int comparacaoPrioridade = Integer.compare(this.prioridade.getNivel(), outro.prioridade.getNivel());
-        
+
         if (comparacaoPrioridade == 0) {
-         
+            // Se a prioridade for igual, desempata pela hora de chegada (FIFO)
             return this.horaChegada.compareTo(outro.horaChegada);
         }
-        
+
         return comparacaoPrioridade;
     }
 
@@ -165,7 +165,7 @@ class Paciente implements Comparable<Paciente> {
                 this.nome,
                 this.horaChegada.format(FORMATTER));
 
-        if (this.horaAtendimento != null) {
+        if (this.horaAtendimento != null && this.medicoAtendeu != null) {
             info += String.format(" - Atendido: %s por Dr(a). %s",
                     this.horaAtendimento.format(FORMATTER),
                     this.medicoAtendeu.getNome());
@@ -173,7 +173,6 @@ class Paciente implements Comparable<Paciente> {
         return info;
     }
 }
-
 
 class Medico {
     private String nome;
@@ -208,30 +207,24 @@ class Medico {
     }
 }
 
-
 class Triagem {
 
-   
     public static Prioridade classificar(Scanner scanner) {
         System.out.println("--- Início da Triagem ---");
         System.out.println("Responda com 's' (sim) ou 'n' (não).");
 
-  
         if (fazerPergunta("O paciente apresenta risco de vida imediato? (Inconsciente, sangramento incontrolável, dificuldade extrema de respirar)", scanner)) {
             return Prioridade.VERMELHO;
         }
 
-  
         if (fazerPergunta("O paciente apresenta um sintoma de alta urgência? (Dor no peito, confusão mental súbita, dor abdominal severa)", scanner)) {
             return Prioridade.AMARELO;
         }
 
-  
         if (fazerPergunta("O paciente apresenta um sintoma de urgência moderada? (Febre alta persistente, vômito que não cessa, dor moderada)", scanner)) {
             return Prioridade.VERDE;
         }
 
-      
         if (fazerPergunta("O caso é um sintoma leve ou crônico? (Resfriado, dor de garganta, renovação de receita)", scanner)) {
             return Prioridade.AZUL;
         }
@@ -257,7 +250,6 @@ class Triagem {
 
 class Clinica {
 
-
     private PriorityQueue<Paciente> filaEspera;
     private List<Paciente> historicoAtendidos;
     private List<Medico> medicos;
@@ -266,20 +258,18 @@ class Clinica {
         this.filaEspera = new PriorityQueue<>();
         this.historicoAtendidos = new ArrayList<>();
         this.medicos = new ArrayList<>();
-        
-  
+
+        // Carrega dados iniciais
         carregarMedicosIniciais();
         carregarPacientesIniciais();
     }
 
-   
     private void carregarMedicosIniciais() {
         medicos.add(new Medico("Ana Souza", "12345-SP"));
         medicos.add(new Medico("Bruno Costa", "67890-RJ"));
         medicos.add(new Medico("Carla Dias", "11223-MG"));
     }
 
- 
     private void carregarPacientesIniciais() {
         System.out.println("Carregando pacientes iniciais...");
         String[] nomes = {"Miguel", "Arthur", "Gael", "Théo", "Heitor", "Ravi", "Davi", "Bernardo", "Noah", "Gabriel", "Helena", "Alice", "Laura", "Maria Alice", "Sophia", "Manuela", "Maitê", "Liz", "Cecília", "Isabella"};
@@ -290,11 +280,12 @@ class Clinica {
             String nome = nomes[i];
             String cpf = String.format("%03d.%03d.%03d-%02d", random.nextInt(999), random.nextInt(999), random.nextInt(999), random.nextInt(99));
             Prioridade p = prioridades[random.nextInt(prioridades.length)]; // Prioridade aleatória
-            
+
             Paciente paciente = new Paciente(nome, cpf, p);
-            // Simula que eles chegaram em momentos diferentes
-            paciente.setHoraAtendimento(LocalDateTime.now().minusMinutes(random.nextInt(180)));
             
+            
+            paciente.setHoraChegada(LocalDateTime.now().minusMinutes(random.nextInt(180)));
+
             filaEspera.add(paciente);
         }
         System.out.println("Pacientes carregados.");
@@ -308,12 +299,11 @@ class Clinica {
 
         Prioridade prioridade = Triagem.classificar(scanner);
         Paciente paciente = new Paciente(nome, cpf, prioridade);
-        
+
         filaEspera.add(paciente);
-        
+
         System.out.printf("Paciente %s adicionado à fila com prioridade %s.\n", nome, prioridade.name());
     }
-
 
     public void mostrarProximo() {
         if (filaEspera.isEmpty()) {
@@ -324,7 +314,6 @@ class Clinica {
         }
     }
 
- 
     public void mostrarFila() {
         if (filaEspera.isEmpty()) {
             System.out.println("Fila de espera vazia.");
@@ -332,9 +321,10 @@ class Clinica {
         }
 
         System.out.println("--- Fila de Espera Atual ---");
-    
+
+        // Copia a fila para não destruir a original ao exibir
         PriorityQueue<Paciente> copiaFila = new PriorityQueue<>(filaEspera);
-        
+
         int i = 1;
         while (!copiaFila.isEmpty()) {
             System.out.println(i + ". " + copiaFila.poll());
@@ -349,24 +339,24 @@ class Clinica {
             return;
         }
 
-    
+        // Seleciona o médico
         Medico medico = selecionarMedico(scanner);
         if (medico == null) {
             System.out.println("Atendimento cancelado.");
             return;
         }
 
-      
+        // Pega o próximo paciente da fila (o de maior prioridade)
         Paciente paciente = filaEspera.poll();
-        
- 
+
+        // Define os dados do atendimento
         paciente.setHoraAtendimento(LocalDateTime.now());
         paciente.setMedicoAtendeu(medico);
 
-   
+        // Adiciona ao histórico do médico
         medico.atenderPaciente(paciente);
 
-       
+        // Adiciona ao histórico geral da clínica
         historicoAtendidos.add(paciente);
 
         System.out.println("--- Atendimento Realizado ---");
@@ -402,7 +392,6 @@ class Clinica {
         return medicos.get(escolha - 1);
     }
 
-   
     public void mostrarHistoricoMedico(Scanner scanner) {
         Medico medico = selecionarMedico(scanner);
         if (medico == null) {
@@ -421,7 +410,6 @@ class Clinica {
         System.out.println("--------------------------------------------------");
     }
 
-    
     public void mostrarHistoricoGeral() {
         System.out.println("--- Histórico Geral de Pacientes Atendidos ---");
         if (historicoAtendidos.isEmpty()) {
